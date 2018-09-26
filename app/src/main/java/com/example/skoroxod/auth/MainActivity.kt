@@ -19,25 +19,19 @@ import com.facebook.CallbackManager
 import com.facebook.AccessToken
 
 
-
-
-
-
 class MainActivity : AppCompatActivity() {
 
 
-    val facebookCallback =                 object :
+    val facebookCallback = object :
             FacebookCallback<LoginResult> {
         override fun onSuccess(loginResult: LoginResult) {
             Log.d("FB_Profile Success", loginResult.accessToken.userId)
             val p = Profile.getCurrentProfile()
 
-            Log.d("FB_Profile Success", p?.firstName + p?.lastName + p?.linkUri + p?.getProfilePictureUri(200,200))
+            Log.d("FB_Profile Success", p?.firstName + p?.lastName + p?.linkUri + p?.getProfilePictureUri(200, 200))
 
 
-            val accessToken = AccessToken.getCurrentAccessToken()
-            val isLoggedIn = accessToken != null && !accessToken.isExpired
-            Log.d("FB_Profile Success", "logged" + isLoggedIn)
+            Log.d("FB_Profile Success", "logged" + isLoggedIn())
         }
 
         override fun onCancel() {
@@ -49,21 +43,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-        override fun onCreate(savedInstanceState: Bundle?) {
+    private fun isLoggedIn(): Boolean {
+        val accessToken = AccessToken.getCurrentAccessToken()
+        return accessToken != null && !accessToken.isExpired
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         callbackManager = CallbackManager.Factory.create();
 
-        loginButton = findViewById<View>(R.id.login_button) as LoginButton
-        loginButton.setReadPermissions("email")
+//        loginButton = findViewById<View>(R.id.login_button) as LoginButton
+//        loginButton.setReadPermissions("email")
+//
+//        // Callback registration
+//        loginButton.registerCallback(callbackManager, facebookCallback  )
 
-        // Callback registration
-        loginButton.registerCallback(callbackManager, facebookCallback  )
 
-            val b = findViewById<Button>(R.id.button2)
-            b.setOnClickListener {
-                LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
-            }
     }
 
     private var callbackManager: CallbackManager? = null
@@ -73,8 +69,18 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val p = Profile.getCurrentProfile()
-        Log.d("FB_Profile", p?.firstName + p?.lastName + p?.linkUri + p?.getProfilePictureUri(200,200))
+        Log.d("FB_Profile", p?.firstName + p?.lastName + p?.linkUri + p?.getProfilePictureUri(200, 200))
 
+        val b = findViewById<Button>(R.id.button2)
+        b.text =  if(isLoggedIn()) "logout" else "login with facebook"
+        b.setOnClickListener {
+            Log.d("FB_Profile", "click login")
+            if(isLoggedIn()) {
+                LoginManager.getInstance().logOut()
+            } else {
+                LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
+            }
+        }
 
         LoginManager.getInstance().registerCallback(callbackManager, facebookCallback)
 
